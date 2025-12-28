@@ -1,8 +1,7 @@
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.*;
-import java.util.Vector;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 public class AdminDashboard extends JFrame {
     private User currentUser;

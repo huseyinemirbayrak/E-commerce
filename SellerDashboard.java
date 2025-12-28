@@ -1,7 +1,7 @@
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.*;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 public class SellerDashboard extends JFrame {
     private int sellerId;
@@ -60,7 +60,7 @@ public class SellerDashboard extends JFrame {
 
     private void loadMyProducts() {
         modelProducts.setRowCount(0);
-        try (Connection conn = DbHelper.getConnection()) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
             // View kullanıyoruz: vw_SellerProductCatalog
             // Ancak bu view Seller ismini içeriyor, ID filtrelemesi için join veya doğrudan tablo sorgusu daha güvenli.
             // DDL'e göre direkt Products ve Catalogs tablolarını kullanmak en temizi.
@@ -89,7 +89,7 @@ public class SellerDashboard extends JFrame {
         String newStockStr = JOptionPane.showInputDialog(this, "Enter New Stock Quantity:", currentStock);
         if (newStockStr == null) return;
         
-        try (Connection conn = DbHelper.getConnection()) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
             int newStock = Integer.parseInt(newStockStr);
             String sql = "UPDATE Products SET StockQuantity = ? WHERE ProductID = ?";
             PreparedStatement pst = conn.prepareStatement(sql);
@@ -121,7 +121,7 @@ public class SellerDashboard extends JFrame {
 
     private void loadIncomingOrders() {
         modelOrders.setRowCount(0);
-        try (Connection conn = DbHelper.getConnection()) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
 
             String sql = "SELECT o.OrderID, u.FirstName, o.OrderDate, o.TotalAmount, o.OrderStatus " +
                          "FROM Orders o JOIN Users u ON o.CustomerID = u.UserID " +
@@ -150,7 +150,7 @@ public class SellerDashboard extends JFrame {
             return;
         }
 
-        try (Connection conn = DbHelper.getConnection()) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
        
             String sql = "UPDATE Orders SET OrderStatus = 'Confirmed' WHERE OrderID = ?";
             PreparedStatement pst = conn.prepareStatement(sql);
@@ -173,7 +173,7 @@ public class SellerDashboard extends JFrame {
         panel.add(new JLabel("=== Seller Statistics ==="));
         panel.add(Box.createVerticalStrut(20));
         
-        try (Connection conn = DbHelper.getConnection()) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
             
             String sql = "SELECT SUM(TotalAmount) FROM Orders WHERE SellerID = ? AND OrderStatus != 'Cancelled'";
             PreparedStatement pst = conn.prepareStatement(sql);

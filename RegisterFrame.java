@@ -1,9 +1,9 @@
-import javax.swing.*;
 import java.awt.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import javax.swing.*;
 
 public class RegisterFrame extends JFrame {
 
@@ -73,7 +73,7 @@ public class RegisterFrame extends JFrame {
             return;
         }
 
-        try (Connection conn = DbHelper.getConnection()) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
             String sql = "INSERT INTO Users (Username, Email, PasswordHash, Role, FirstName, LastName, PhoneNumber) VALUES (?, ?, ?, ?, ?, ?, ?)";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, username);

@@ -40,7 +40,7 @@ public class LoginFrame extends JFrame {
     private void loginAction() {
         String email = txtEmail.getText();
         
-        try (Connection conn = DbHelper.getConnection()) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
             String sql = "SELECT * FROM Users WHERE Email = ?";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, email);

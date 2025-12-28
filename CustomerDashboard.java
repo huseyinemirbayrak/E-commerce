@@ -1,7 +1,7 @@
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.*;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 public class CustomerDashboard extends JFrame {
     private int userId;
@@ -68,7 +68,7 @@ public class CustomerDashboard extends JFrame {
 
     private void loadProducts() {
         modelProducts.setRowCount(0);
-        try (Connection conn = DbHelper.getConnection()) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
 
             String sql = "SELECT * FROM vw_SellerProductCatalog WHERE IsActive = TRUE AND StockQuantity > 0";
             Statement stmt = conn.createStatement();
@@ -101,7 +101,7 @@ public class CustomerDashboard extends JFrame {
             int quantity = Integer.parseInt(qtyStr);
             if (quantity <= 0) throw new NumberFormatException();
             
-            try (Connection conn = DbHelper.getConnection()) {
+            try (Connection conn = DatabaseConnection.getConnection()) {
                 int orderId = -1;
                 String checkSql = "SELECT OrderID FROM Orders WHERE CustomerID = ? AND OrderStatus = 'Pending'";
                 PreparedStatement pst = conn.prepareStatement(checkSql);
@@ -184,7 +184,7 @@ public class CustomerDashboard extends JFrame {
     private void loadCart() {
         modelCart.setRowCount(0);
         lblCartTotal.setText("Total: 0.00");
-        try (Connection conn = DbHelper.getConnection()) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
             int orderId = getPendingOrderId(conn);
             if (orderId == -1) return;
             
@@ -212,7 +212,7 @@ public class CustomerDashboard extends JFrame {
     }
 
     private void applyCouponAction() {
-        try (Connection conn = DbHelper.getConnection()) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
             int orderId = getPendingOrderId(conn);
             if (orderId == -1) { JOptionPane.showMessageDialog(this, "Empty Cart"); return; }
             
@@ -231,7 +231,7 @@ public class CustomerDashboard extends JFrame {
     }
 
     private void payAction() {
-        try (Connection conn = DbHelper.getConnection()) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
             int orderId = getPendingOrderId(conn);
             if (orderId == -1) return;
             
@@ -274,7 +274,7 @@ public class CustomerDashboard extends JFrame {
     
     private void loadOrderHistory() {
         modelHistory.setRowCount(0);
-        try (Connection conn = DbHelper.getConnection()) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
             String sql = "SELECT OrderID, OrderDate, TotalAmount, OrderStatus FROM Orders WHERE CustomerID = ? ORDER BY OrderDate DESC";
             PreparedStatement pst = conn.prepareStatement(sql);
             pst.setInt(1, userId);
@@ -299,7 +299,7 @@ public class CustomerDashboard extends JFrame {
         panel.add(new JLabel("=== My Statistics (SQL Calculated) ==="));
         panel.add(Box.createVerticalStrut(20));
         
-        try (Connection conn = DbHelper.getConnection()) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
             String sql1 = "SELECT DATE_FORMAT(OrderDate, '%Y-%m') as M, SUM(TotalAmount) as T FROM Orders WHERE CustomerID = ? GROUP BY M";
             PreparedStatement pst1 = conn.prepareStatement(sql1);
             pst1.setInt(1, userId);
