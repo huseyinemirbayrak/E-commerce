@@ -1,10 +1,8 @@
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.*;
 import java.text.DecimalFormat;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 public class SellerDashboard extends JFrame {
     private User currentUser;
@@ -20,7 +18,6 @@ public class SellerDashboard extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Get catalog_id for this seller
         try (Connection conn = DatabaseConnection.getConnection()) {
             String sql = "SELECT catalog_id FROM Catalogs WHERE seller_id = ?";
             PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -41,26 +38,41 @@ public class SellerDashboard extends JFrame {
         tabbedPane.addTab("Reviews", createReviewsPanel());
         tabbedPane.addTab("Statistics", createStatsPanel());
 
-        add(tabbedPane);
+JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+JButton btnLogout = new JButton("Logout");
+btnLogout.setForeground(Color.RED);
+
+btnLogout.addActionListener(e -> {
+    int confirm = JOptionPane.showConfirmDialog(this, 
+        "Are you sure you want to logout?", "Logout", JOptionPane.YES_NO_OPTION);
+    if (confirm == JOptionPane.YES_OPTION) {
+        dispose(); 
+        new LoginFrame().setVisible(true);
+    }
+});
+
+bottomPanel.add(btnLogout);
+
+add(tabbedPane, BorderLayout.CENTER);  
+add(bottomPanel, BorderLayout.SOUTH);  
+
 
         tabbedPane.addChangeListener(e -> {
             int index = tabbedPane.getSelectedIndex();
             if (index == 1) loadProducts();
-            else if (index == 2) loadProducts(); // Inventory uses same product list
+            else if (index == 2) loadProducts(); 
             else if (index == 3) loadOrders();
             else if (index == 4) loadReviews();
             else if (index == 5) updateStats();
         });
     }
 
-    // Catalog Overview Panel
     private JPanel createCatalogOverviewPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         try (Connection conn = DatabaseConnection.getConnection()) {
-            // Product count
             String countSql = "SELECT COUNT(*) as product_count FROM Products WHERE catalog_id = ?";
             PreparedStatement countStmt = conn.prepareStatement(countSql);
             countStmt.setInt(1, catalogId);
@@ -70,7 +82,6 @@ public class SellerDashboard extends JFrame {
                 productCount = countRs.getInt("product_count");
             }
 
-            // Total inventory value
             String valueSql = "SELECT SUM(price * stock_quantity) as total_value FROM Products WHERE catalog_id = ?";
             PreparedStatement valueStmt = conn.prepareStatement(valueSql);
             valueStmt.setInt(1, catalogId);
@@ -95,7 +106,6 @@ public class SellerDashboard extends JFrame {
         return panel;
     }
 
-    // Product Management Panel
     private JPanel createProductPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
@@ -415,7 +425,6 @@ public class SellerDashboard extends JFrame {
                     }
 
                     try (Connection conn = DatabaseConnection.getConnection()) {
-                        // Update stock using SQL addition (doesn't modify past orders)
                         String sql = "UPDATE Products SET stock_quantity = stock_quantity + ? WHERE product_id = ? AND catalog_id = ?";
                         PreparedStatement pstmt = conn.prepareStatement(sql);
                         pstmt.setInt(1, addQty);
@@ -429,10 +438,9 @@ public class SellerDashboard extends JFrame {
                             "Success", 
                             JOptionPane.INFORMATION_MESSAGE);
 
-                        // Reload products table
                         loadProducts();
                     }
-                } catch (NumberFormatException e) {
+                } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(this, "Invalid quantity!");
                 } catch (SQLException ex) {
                     ex.printStackTrace();
@@ -613,7 +621,6 @@ public class SellerDashboard extends JFrame {
                 updateStmt.setInt(2, orderId);
                 updateStmt.executeUpdate();
 
-                // If status changes to 'shipped', create/update shipment record
                 if ("shipped".equals(newStatus)) {
                     String shipmentSql = "INSERT INTO Shipments (order_id, tracking_number, shipped_date, status) " +
                                         "VALUES (?, ?, CURDATE(), 'in_transit') " +
@@ -765,7 +772,6 @@ public class SellerDashboard extends JFrame {
 
             panel.add(Box.createVerticalStrut(20));
 
-            // Average Order Value
             panel.add(new JLabel("=== Average Order Value ==="));
             String avgSql = "SELECT AVG(total_amount) as avg_value FROM Orders WHERE seller_id = ?";
             PreparedStatement avgStmt = conn.prepareStatement(avgSql);

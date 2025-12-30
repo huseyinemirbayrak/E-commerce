@@ -1,10 +1,8 @@
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.*;
 import java.text.DecimalFormat;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 public class CustomerDashboard extends JFrame {
     private User currentUser;
@@ -31,7 +29,25 @@ public class CustomerDashboard extends JFrame {
         tabbedPane.addTab("Statistics", createStatsPanel());
         tabbedPane.addTab("Addresses", createAddressesPanel());
 
-        add(tabbedPane);
+       
+JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+JButton btnLogout = new JButton("Logout");
+btnLogout.setForeground(Color.RED);
+
+btnLogout.addActionListener(e -> {
+    int confirm = JOptionPane.showConfirmDialog(this, 
+        "Are you sure you want to logout?", "Logout", JOptionPane.YES_NO_OPTION);
+    if (confirm == JOptionPane.YES_OPTION) {
+        dispose(); 
+        new LoginFrame().setVisible(true);
+    }
+});
+
+bottomPanel.add(btnLogout);
+
+add(tabbedPane, BorderLayout.CENTER);  
+add(bottomPanel, BorderLayout.SOUTH);  
+
 
         tabbedPane.addChangeListener(e -> {
             int index = tabbedPane.getSelectedIndex();
@@ -43,11 +59,9 @@ public class CustomerDashboard extends JFrame {
         });
     }
 
-    // Browse Catalogs Panel
     private JPanel createBrowseCatalogsPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
-        // Top panel: Catalog selection
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         topPanel.add(new JLabel("Select Seller Catalog:"));
         JComboBox<String> cmbCatalogs = new JComboBox<>();
@@ -62,7 +76,6 @@ public class CustomerDashboard extends JFrame {
         });
         topPanel.add(cmbCatalogs);
 
-        // Search and filter panel
         JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         filterPanel.add(new JLabel("Search:"));
         txtSearch = new JTextField(15);
@@ -91,7 +104,6 @@ public class CustomerDashboard extends JFrame {
         northPanel.add(filterPanel, BorderLayout.SOUTH);
         panel.add(northPanel, BorderLayout.NORTH);
 
-        // Products table
         String[] columns = {"Product ID", "Name", "Category", "Price", "Stock", "Avg Rating", "Reviews"};
         modelProducts = new DefaultTableModel(columns, 0) {
             @Override
@@ -105,7 +117,6 @@ public class CustomerDashboard extends JFrame {
         tableProducts.getColumnModel().getColumn(0).setWidth(0);
         panel.add(new JScrollPane(tableProducts), BorderLayout.CENTER);
 
-        // Buttons
         JPanel btnPanel = new JPanel(new FlowLayout());
         JButton btnViewDetails = new JButton("View Details");
         JButton btnAddToCart = new JButton("Add to Cart");
@@ -272,7 +283,6 @@ public class CustomerDashboard extends JFrame {
                 );
                 panel.add(new JScrollPane(details), BorderLayout.CENTER);
 
-                // Load reviews
                 String reviewsSql = "SELECT r.rating, r.comment, r.review_date, u.name as customer_name " +
                                    "FROM Reviews r " +
                                    "JOIN Users u ON r.customer_id = u.user_id " +
@@ -340,7 +350,6 @@ public class CustomerDashboard extends JFrame {
             }
 
             try (Connection conn = DatabaseConnection.getConnection()) {
-                // Check stock
                 String stockSql = "SELECT stock_quantity FROM Products WHERE product_id = ?";
                 PreparedStatement stockStmt = conn.prepareStatement(stockSql);
                 stockStmt.setInt(1, productId);
@@ -356,7 +365,6 @@ public class CustomerDashboard extends JFrame {
                     }
                 }
 
-                // Get seller_id for this product
                 String sellerSql = "SELECT c.seller_id FROM Products p " +
                                   "JOIN Catalogs c ON p.catalog_id = c.catalog_id " +
                                   "WHERE p.product_id = ?";
@@ -369,7 +377,6 @@ public class CustomerDashboard extends JFrame {
                 }
                 int productSellerId = sellerRs.getInt("seller_id");
 
-                // Check for existing ongoing order
                 String orderSql = "SELECT order_id, seller_id FROM Orders " +
                                  "WHERE customer_id = ? AND status = 'ongoing'";
                 PreparedStatement orderStmt = conn.prepareStatement(orderSql);
@@ -381,7 +388,6 @@ public class CustomerDashboard extends JFrame {
                     orderId = orderRs.getInt("order_id");
                     int existingSellerId = orderRs.getInt("seller_id");
                     
-                    // Business rule: Only one seller per order
                     if (existingSellerId != productSellerId) {
                         JOptionPane.showMessageDialog(this, 
                             "You already have items from a different seller in your cart!\n" +
@@ -391,7 +397,6 @@ public class CustomerDashboard extends JFrame {
                         return;
                     }
                 } else {
-                    // Create new ongoing order - need addresses
                     String addressSql = "SELECT address_id FROM Addresses WHERE user_id = ? LIMIT 1";
                     PreparedStatement addrStmt = conn.prepareStatement(addressSql);
                     addrStmt.setInt(1, currentUser.getUserId());
@@ -407,7 +412,6 @@ public class CustomerDashboard extends JFrame {
                     
                     int addressId = addrRs.getInt("address_id");
                     
-                    // Create new ongoing order
                     String createOrderSql = "INSERT INTO Orders (customer_id, seller_id, shipping_address_id, billing_address_id, status) " +
                                           "VALUES (?, ?, ?, ?, 'ongoing')";
                     PreparedStatement createStmt = conn.prepareStatement(createOrderSql, Statement.RETURN_GENERATED_KEYS);
@@ -425,7 +429,6 @@ public class CustomerDashboard extends JFrame {
                     }
                 }
 
-                // Get product price
                 String priceSql = "SELECT price FROM Products WHERE product_id = ?";
                 PreparedStatement priceStmt = conn.prepareStatement(priceSql);
                 priceStmt.setInt(1, productId);
@@ -436,7 +439,6 @@ public class CustomerDashboard extends JFrame {
                 double price = priceRs.getDouble("price");
                 double subtotal = price * quantity;
 
-                // Check if product already in cart
                 String checkSql = "SELECT order_item_id, quantity FROM Order_Items " +
                                  "WHERE order_id = ? AND product_id = ?";
                 PreparedStatement checkStmt = conn.prepareStatement(checkSql);
@@ -445,7 +447,6 @@ public class CustomerDashboard extends JFrame {
                 ResultSet checkRs = checkStmt.executeQuery();
 
                 if (checkRs.next()) {
-                    // Update existing item
                     int existingQty = checkRs.getInt("quantity");
                     int newQty = existingQty + quantity;
                     double newSubtotal = price * newQty;
@@ -459,7 +460,6 @@ public class CustomerDashboard extends JFrame {
                     updateStmt.setInt(4, productId);
                     updateStmt.executeUpdate();
                 } else {
-                    // Insert new item
                     String insertSql = "INSERT INTO Order_Items (order_id, product_id, quantity, price_at_purchase, subtotal) " +
                                      "VALUES (?, ?, ?, ?, ?)";
                     PreparedStatement insertStmt = conn.prepareStatement(insertSql);
@@ -471,7 +471,6 @@ public class CustomerDashboard extends JFrame {
                     insertStmt.executeUpdate();
                 }
 
-                // Update order total
                 String totalSql = "UPDATE Orders SET total_amount = " +
                                  "(SELECT COALESCE(SUM(subtotal), 0) FROM Order_Items WHERE order_id = ?) " +
                                  "WHERE order_id = ?";
@@ -491,7 +490,6 @@ public class CustomerDashboard extends JFrame {
         }
     }
 
-    // Shopping Cart Panel
     private JPanel createCartPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
@@ -499,7 +497,7 @@ public class CustomerDashboard extends JFrame {
         modelCart = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int col) {
-                return col == 1; // Only quantity is editable
+                return col == 1; 
             }
         };
         tableCart = new JTable(modelCart);
@@ -568,7 +566,6 @@ public class CustomerDashboard extends JFrame {
         }
 
         try (Connection conn = DatabaseConnection.getConnection()) {
-            // Get order_item_id
             String sql = "SELECT oi.order_item_id, oi.order_id " +
                         "FROM Order_Items oi " +
                         "JOIN Orders o ON oi.order_id = o.order_id " +
@@ -588,7 +585,6 @@ public class CustomerDashboard extends JFrame {
                 deleteStmt.setInt(1, orderItemId);
                 deleteStmt.executeUpdate();
 
-                // Update order total
                 String totalSql = "UPDATE Orders SET total_amount = " +
                                  "(SELECT COALESCE(SUM(subtotal), 0) FROM Order_Items WHERE order_id = ?) " +
                                  "WHERE order_id = ?";
@@ -624,7 +620,6 @@ public class CustomerDashboard extends JFrame {
             }
 
             try (Connection conn = DatabaseConnection.getConnection()) {
-                // Get order_item details
                 String sql = "SELECT oi.order_item_id, oi.order_id, oi.product_id, oi.price_at_purchase " +
                             "FROM Order_Items oi " +
                             "JOIN Orders o ON oi.order_id = o.order_id " +
@@ -641,7 +636,6 @@ public class CustomerDashboard extends JFrame {
                     int productId = rs.getInt("product_id");
                     double price = rs.getDouble("price_at_purchase");
 
-                    // Check stock
                     String stockSql = "SELECT stock_quantity FROM Products WHERE product_id = ?";
                     PreparedStatement stockStmt = conn.prepareStatement(stockSql);
                     stockStmt.setInt(1, productId);
@@ -665,7 +659,6 @@ public class CustomerDashboard extends JFrame {
                     updateStmt.setInt(3, orderItemId);
                     updateStmt.executeUpdate();
 
-                    // Update order total
                     String totalSql = "UPDATE Orders SET total_amount = " +
                                      "(SELECT COALESCE(SUM(subtotal), 0) FROM Order_Items WHERE order_id = ?) " +
                                      "WHERE order_id = ?";
@@ -686,83 +679,128 @@ public class CustomerDashboard extends JFrame {
         }
     }
 
-    private void submitOrder() {
-        try (Connection conn = DatabaseConnection.getConnection()) {
-            // Check if cart has items
-            String checkSql = "SELECT COUNT(*) as item_count FROM Order_Items oi " +
-                             "JOIN Orders o ON oi.order_id = o.order_id " +
-                             "WHERE o.customer_id = ? AND o.status = 'ongoing'";
-            PreparedStatement checkStmt = conn.prepareStatement(checkSql);
-            checkStmt.setInt(1, currentUser.getUserId());
-            ResultSet checkRs = checkStmt.executeQuery();
-            
-            if (!checkRs.next() || checkRs.getInt("item_count") == 0) {
-                JOptionPane.showMessageDialog(this, "Your cart is empty!");
+private void submitOrder() {
+    Connection conn = null;
+    try {
+        conn = DatabaseConnection.getConnection();
+        conn.setAutoCommit(false);
+
+        String checkSql = "SELECT COUNT(*) as item_count FROM Order_Items oi " +
+                         "JOIN Orders o ON oi.order_id = o.order_id " +
+                         "WHERE o.customer_id = ? AND o.status = 'ongoing'";
+        PreparedStatement checkStmt = conn.prepareStatement(checkSql);
+        checkStmt.setInt(1, currentUser.getUserId());
+        ResultSet checkRs = checkStmt.executeQuery();
+        
+        if (!checkRs.next() || checkRs.getInt("item_count") == 0) {
+            conn.rollback(); 
+            JOptionPane.showMessageDialog(this, "Your cart is empty!");
+            return;
+        }
+
+        String orderSql = "SELECT order_id, shipping_address_id, billing_address_id FROM Orders " +
+                        "WHERE customer_id = ? AND status = 'ongoing'";
+        PreparedStatement orderStmt = conn.prepareStatement(orderSql);
+        orderStmt.setInt(1, currentUser.getUserId());
+        ResultSet orderRs = orderStmt.executeQuery();
+
+        if (orderRs.next()) {
+            int orderId = orderRs.getInt("order_id");
+            int shippingAddrId = orderRs.getInt("shipping_address_id");
+            int billingAddrId = orderRs.getInt("billing_address_id");
+
+            AddressSelectionDialog dialog = new AddressSelectionDialog(this, conn, currentUser.getUserId(), 
+                                                                      shippingAddrId, billingAddrId);
+            dialog.setVisible(true);
+
+            if (!dialog.isConfirmed()) {
+                conn.rollback();
                 return;
             }
 
-            // Get order
-            String orderSql = "SELECT order_id, shipping_address_id, billing_address_id FROM Orders " +
-                            "WHERE customer_id = ? AND status = 'ongoing'";
-            PreparedStatement orderStmt = conn.prepareStatement(orderSql);
-            orderStmt.setInt(1, currentUser.getUserId());
-            ResultSet orderRs = orderStmt.executeQuery();
+            shippingAddrId = dialog.getShippingAddressId();
+            billingAddrId = dialog.getBillingAddressId();
 
-            if (orderRs.next()) {
-                int orderId = orderRs.getInt("order_id");
-                int shippingAddrId = orderRs.getInt("shipping_address_id");
-                int billingAddrId = orderRs.getInt("billing_address_id");
+            String stockCheckSql = "SELECT oi.product_id, oi.quantity, p.stock_quantity, p.name " +
+                                 "FROM Order_Items oi " +
+                                 "JOIN Products p ON oi.product_id = p.product_id " +
+                                 "WHERE oi.order_id = ?";
+            PreparedStatement stockCheckStmt = conn.prepareStatement(stockCheckSql);
+            stockCheckStmt.setInt(1, orderId);
+            ResultSet stockRs = stockCheckStmt.executeQuery();
 
-                // Show address selection dialog
-                AddressSelectionDialog dialog = new AddressSelectionDialog(this, conn, currentUser.getUserId(), 
-                                                                          shippingAddrId, billingAddrId);
-                dialog.setVisible(true);
+            while (stockRs.next()) {
+                int prodId = stockRs.getInt("product_id");
+                int qtyNeeded = stockRs.getInt("quantity");
+                int currentStock = stockRs.getInt("stock_quantity");
+                String prodName = stockRs.getString("name");
 
-                if (dialog.isConfirmed()) {
-                    shippingAddrId = dialog.getShippingAddressId();
-                    billingAddrId = dialog.getBillingAddressId();
-
-                    // Update order addresses and status
-                    String updateSql = "UPDATE Orders SET shipping_address_id = ?, billing_address_id = ?, status = 'pending' " +
-                                      "WHERE order_id = ?";
-                    PreparedStatement updateStmt = conn.prepareStatement(updateSql);
-                    updateStmt.setInt(1, shippingAddrId);
-                    updateStmt.setInt(2, billingAddrId);
-                    updateStmt.setInt(3, orderId);
-                    updateStmt.executeUpdate();
-
-                    // Create payment record
-                    String totalSql = "SELECT total_amount FROM Orders WHERE order_id = ?";
-                    PreparedStatement totalStmt = conn.prepareStatement(totalSql);
-                    totalStmt.setInt(1, orderId);
-                    ResultSet totalRs = totalStmt.executeQuery();
-                    double totalAmount = 0.0;
-                    if (totalRs.next()) {
-                        totalAmount = totalRs.getDouble("total_amount");
-                    }
-
-                    String paymentSql = "INSERT INTO Payments (order_id, transaction_id, amount, method, status) " +
-                                      "VALUES (?, ?, ?, 'credit_card', 'pending')";
-                    PreparedStatement paymentStmt = conn.prepareStatement(paymentSql);
-                    paymentStmt.setInt(1, orderId);
-                    paymentStmt.setString(2, "TXN-" + System.currentTimeMillis());
-                    paymentStmt.setDouble(3, totalAmount);
-                    paymentStmt.executeUpdate();
-
+                if (currentStock < qtyNeeded) {
+                    conn.rollback(); 
                     JOptionPane.showMessageDialog(this, 
-                        "Order submitted successfully! Order ID: " + orderId, 
-                        "Success", 
-                        JOptionPane.INFORMATION_MESSAGE);
-                    loadCart();
+                        "Sorry, insufficient stock for: " + prodName + "\nAvailable: " + currentStock, 
+                        "Stock Error", JOptionPane.ERROR_MESSAGE);
+                    return;
                 }
+
+                String reduceStockSql = "UPDATE Products SET stock_quantity = stock_quantity - ? WHERE product_id = ?";
+                PreparedStatement reduceStmt = conn.prepareStatement(reduceStockSql);
+                reduceStmt.setInt(1, qtyNeeded);
+                reduceStmt.setInt(2, prodId);
+                reduceStmt.executeUpdate();
             }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error submitting order: " + ex.getMessage());
+
+            String updateSql = "UPDATE Orders SET shipping_address_id = ?, billing_address_id = ?, status = 'pending' " +
+                              "WHERE order_id = ?";
+            PreparedStatement updateStmt = conn.prepareStatement(updateSql);
+            updateStmt.setInt(1, shippingAddrId);
+            updateStmt.setInt(2, billingAddrId);
+            updateStmt.setInt(3, orderId);
+            updateStmt.executeUpdate();
+
+            String totalSql = "SELECT total_amount FROM Orders WHERE order_id = ?";
+            PreparedStatement totalStmt = conn.prepareStatement(totalSql);
+            totalStmt.setInt(1, orderId);
+            ResultSet totalRs = totalStmt.executeQuery();
+            double totalAmount = 0.0;
+            if (totalRs.next()) {
+                totalAmount = totalRs.getDouble("total_amount");
+            }
+
+            String paymentSql = "INSERT INTO Payments (order_id, transaction_id, amount, method, status) " +
+                              "VALUES (?, ?, ?, 'Credit Card', 'Completed')"; // Otomatik Completed varsayıyoruz
+            PreparedStatement paymentStmt = conn.prepareStatement(paymentSql);
+            paymentStmt.setInt(1, orderId);
+            paymentStmt.setString(2, "TXN-" + System.currentTimeMillis());
+            paymentStmt.setDouble(3, totalAmount);
+            paymentStmt.executeUpdate();
+
+            conn.commit();
+
+            JOptionPane.showMessageDialog(this, 
+                "Order submitted successfully! Order ID: " + orderId, 
+                "Success", 
+                JOptionPane.INFORMATION_MESSAGE);
+            loadCart(); 
+        }
+    } catch (SQLException ex) {
+        try {
+            if (conn != null) conn.rollback();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        ex.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Error submitting order: " + ex.getMessage());
+    } finally {
+        try {
+            if (conn != null) conn.setAutoCommit(true);
+            if (conn != null) conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
+}
 
-    // Order History Panel
     private JPanel createHistoryPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
@@ -897,7 +935,6 @@ public class CustomerDashboard extends JFrame {
         
         if (confirm == JOptionPane.YES_OPTION) {
             try (Connection conn = DatabaseConnection.getConnection()) {
-                // Restore stock
                 String restoreSql = "UPDATE Products p " +
                                   "JOIN Order_Items oi ON p.product_id = oi.product_id " +
                                   "SET p.stock_quantity = p.stock_quantity + oi.quantity " +
@@ -906,7 +943,6 @@ public class CustomerDashboard extends JFrame {
                 restoreStmt.setInt(1, orderId);
                 restoreStmt.executeUpdate();
 
-                // Update order status
                 String updateSql = "UPDATE Orders SET status = 'canceled' WHERE order_id = ?";
                 PreparedStatement updateStmt = conn.prepareStatement(updateSql);
                 updateStmt.setInt(1, orderId);
@@ -921,7 +957,6 @@ public class CustomerDashboard extends JFrame {
         }
     }
 
-    // Reviews Panel
     private JPanel createReviewsPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
@@ -942,7 +977,6 @@ public class CustomerDashboard extends JFrame {
                 JOptionPane.showMessageDialog(this, "Please select an item first!");
                 return;
             }
-            // Review dialog will be shown
         });
 
         panel.add(btnReview, BorderLayout.SOUTH);
@@ -954,7 +988,6 @@ public class CustomerDashboard extends JFrame {
         // Only shipped orders can be reviewed
     }
 
-    // Statistics Panel
     private JPanel createStatsPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -966,7 +999,6 @@ public class CustomerDashboard extends JFrame {
         panel.removeAll();
 
         try (Connection conn = DatabaseConnection.getConnection()) {
-            // Monthly Total Purchase Amount
             String monthlySql = "SELECT MONTH(order_date) as month, YEAR(order_date) as year, " +
                                "SUM(total_amount) as total " +
                                "FROM Orders " +
@@ -987,7 +1019,6 @@ public class CustomerDashboard extends JFrame {
 
             panel.add(Box.createVerticalStrut(20));
 
-            // Most Purchased Category
             String categorySql = "SELECT c.name, SUM(oi.quantity) as total_quantity " +
                                 "FROM Order_Items oi " +
                                 "JOIN Products p ON oi.product_id = p.product_id " +
@@ -1011,7 +1042,6 @@ public class CustomerDashboard extends JFrame {
 
             panel.add(Box.createVerticalStrut(20));
 
-            // Average Monthly Purchase
             String avgSql = "SELECT AVG(monthly_total) as avg_monthly " +
                            "FROM (SELECT YEAR(order_date) as year, MONTH(order_date) as month, " +
                            "SUM(total_amount) as monthly_total " +
@@ -1041,7 +1071,6 @@ public class CustomerDashboard extends JFrame {
         panel.repaint();
     }
 
-    // Addresses Panel
     private JPanel createAddressesPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
@@ -1174,6 +1203,86 @@ public class CustomerDashboard extends JFrame {
             }
         }
     }
+
+    private void showReviewDialog(int orderId, String productName) {
+    JDialog dialog = new JDialog(this, "Review: " + productName, true);
+    dialog.setSize(400, 300);
+    dialog.setLocationRelativeTo(this);
+    
+    JPanel panel = new JPanel(new GridBagLayout());
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.insets = new Insets(5,5,5,5);
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    
+    gbc.gridx=0; gbc.gridy=0;
+    panel.add(new JLabel("Rating (1-5):"), gbc);
+    
+    gbc.gridx=1;
+    JSlider ratingSlider = new JSlider(1, 5, 5);
+    ratingSlider.setMajorTickSpacing(1);
+    ratingSlider.setPaintTicks(true);
+    ratingSlider.setPaintLabels(true);
+    panel.add(ratingSlider, gbc);
+    
+    gbc.gridx=0; gbc.gridy=1;
+    panel.add(new JLabel("Comment:"), gbc);
+    
+    gbc.gridx=0; gbc.gridy=2; gbc.gridwidth=2;
+    JTextArea txtComment = new JTextArea(5, 20);
+    txtComment.setLineWrap(true);
+    panel.add(new JScrollPane(txtComment), gbc);
+    
+    gbc.gridx=0; gbc.gridy=3; gbc.gridwidth=2;
+    JButton btnSubmit = new JButton("Submit Review");
+    panel.add(btnSubmit, gbc);
+    
+    btnSubmit.addActionListener(e -> {
+        String comment = txtComment.getText().trim();
+        int rating = ratingSlider.getValue();
+        
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String findItemSql = "SELECT oi.order_item_id, oi.product_id " +
+                               "FROM Order_Items oi WHERE oi.order_id = ? LIMIT 1";
+            PreparedStatement findStmt = conn.prepareStatement(findItemSql);
+            findStmt.setInt(1, orderId);
+            ResultSet findRs = findStmt.executeQuery();
+            
+            if (findRs.next()) {
+                int orderItemId = findRs.getInt("order_item_id");
+                int productId = findRs.getInt("product_id");
+                
+                String checkSql = "SELECT review_id FROM Reviews WHERE order_item_id = ?";
+                PreparedStatement checkStmt = conn.prepareStatement(checkSql);
+                checkStmt.setInt(1, orderItemId);
+                if (checkStmt.executeQuery().next()) {
+                    JOptionPane.showMessageDialog(dialog, "You have already reviewed this item!");
+                    return;
+                }
+
+                String insertSql = "INSERT INTO Reviews (customer_id, product_id, order_id, order_item_id, rating, comment) " +
+                                 "VALUES (?, ?, ?, ?, ?, ?)";
+                PreparedStatement pstmt = conn.prepareStatement(insertSql);
+                pstmt.setInt(1, currentUser.getUserId());
+                pstmt.setInt(2, productId);
+                pstmt.setInt(3, orderId);
+                pstmt.setInt(4, orderItemId);
+                pstmt.setInt(5, rating);
+                pstmt.setString(6, comment);
+                pstmt.executeUpdate();
+                
+                JOptionPane.showMessageDialog(dialog, "Review submitted! Thank you.");
+                dialog.dispose();
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(dialog, "Error: " + ex.getMessage());
+        }
+    });
+    
+    dialog.add(panel);
+    dialog.setVisible(true);
+}
+
 
     private void deleteAddress() {
         int row = tableAddresses.getSelectedRow();

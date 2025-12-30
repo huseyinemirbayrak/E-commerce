@@ -25,7 +25,24 @@ public class AdminDashboard extends JFrame {
         tabbedPane.addTab("Shipment Management", createShipmentPanel());
         tabbedPane.addTab("System Statistics", createStatsPanel());
 
-        add(tabbedPane);
+JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+JButton btnLogout = new JButton("Logout");
+btnLogout.setForeground(Color.RED);
+
+
+btnLogout.addActionListener(e -> {
+    int confirm = JOptionPane.showConfirmDialog(this, 
+        "Are you sure you want to logout?", "Logout", JOptionPane.YES_NO_OPTION);
+    if (confirm == JOptionPane.YES_OPTION) {
+        dispose(); 
+        new LoginFrame().setVisible(true);
+    }
+});
+
+bottomPanel.add(btnLogout);
+
+add(tabbedPane, BorderLayout.CENTER); 
+add(bottomPanel, BorderLayout.SOUTH); 
 
         tabbedPane.addChangeListener(e -> {
             int index = tabbedPane.getSelectedIndex();
@@ -36,7 +53,6 @@ public class AdminDashboard extends JFrame {
         });
     }
 
-    // User Management Panel
     private JPanel createUserPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
@@ -53,7 +69,6 @@ public class AdminDashboard extends JFrame {
         tableUsers.getColumnModel().getColumn(0).setWidth(0);
         panel.add(new JScrollPane(tableUsers), BorderLayout.CENTER);
 
-        // Filter by role
         JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         filterPanel.add(new JLabel("Filter by Role:"));
         JComboBox<String> cmbRoleFilter = new JComboBox<>(new String[]{"All", "Customer", "Seller", "Administrator"});
