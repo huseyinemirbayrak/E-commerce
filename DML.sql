@@ -1,101 +1,70 @@
-USE ecommerce_db;
+USE cs202_ecommerce;
 
--- Insert Administrator user
-INSERT INTO Users (name, email, password, role, is_active) VALUES
-('Admin User', 'admin@ecommerce.com', 'admin123', 'Administrator', TRUE);
+INSERT INTO Users (name, email, password_hash, role, is_active) VALUES
+('Admin User', 'admin@shop.com', 'admin123', 'ADMIN', TRUE),
+('Seller One', 'seller1@shop.com', 'seller123', 'SELLER', TRUE),
+('Seller Two', 'seller2@shop.com', 'seller123', 'SELLER', TRUE),
+('Customer One', 'customer1@shop.com', 'customer123', 'CUSTOMER', TRUE),
+('Customer Two', 'customer2@shop.com', 'customer123', 'CUSTOMER', TRUE);
 
--- Insert sample customers
-INSERT INTO Users (name, email, password, role) VALUES
-('John Doe', 'john@email.com', 'pass123', 'Customer'),
-('Jane Smith', 'jane@email.com', 'pass123', 'Customer'),
-('Alice Johnson', 'alice.johnson@email.com', 'pass123', 'Customer'),
-('Bob Wilson', 'bob.wilson@email.com', 'pass123', 'Customer');
+INSERT INTO Addresses (user_id, address_type, country, city, district, address_line, postal_code, phone, is_default) VALUES
+(4, 'SHIPPING', 'Turkey', 'Istanbul', 'Kadikoy', 'Example Street 1', '34000', '5551112233', TRUE),
+(4, 'BILLING', 'Turkey', 'Istanbul', 'Kadikoy', 'Example Street 1', '34000', '5551112233', TRUE),
+(5, 'SHIPPING', 'Turkey', 'Ankara', 'Cankaya', 'Example Street 2', '06000', '5552223344', TRUE);
 
--- Insert sample sellers
-INSERT INTO Users (name, email, password, role) VALUES
-('TechStore', 'techstore@email.com', 'pass123', 'Seller'),
-('BookShop', 'bookshop@email.com', 'pass123', 'Seller'),
-('FashionHub', 'fashionhub@email.com', 'pass123', 'Seller');
+INSERT INTO Categories (category_name, description, created_by_admin) VALUES
+('Electronics', 'Electronic devices', 1),
+('Books', 'Books and magazines', 1),
+('Clothing', 'Clothing products', 1);
 
--- Insert addresses for customers
-INSERT INTO Addresses (user_id, street, city, country, address_type, is_default) VALUES
-(2, '123 Main St', 'New York', 'USA', 'Both', TRUE),
-(2, '456 Second Ave', 'New York', 'USA', 'Shipping', FALSE),
-(3, '789 Third St', 'Los Angeles', 'USA', 'Both', TRUE),
-(4, '321 Oak Avenue', 'Chicago', 'USA', 'Both', TRUE),
-(5, '654 Pine Street', 'Boston', 'USA', 'Both', TRUE);
+INSERT INTO Catalogs (seller_id, catalog_name) VALUES
+(2, 'Seller One Catalog'),
+(3, 'Seller Two Catalog');
 
--- Insert addresses for sellers
-INSERT INTO Addresses (user_id, street, city, country) VALUES
-(6, '100 Tech Boulevard', 'San Francisco', 'USA'),
-(7, '200 Book Lane', 'Seattle', 'USA'),
-(8, '300 Fashion Avenue', 'New York', 'USA');
+INSERT INTO Products (catalog_id, category_id, product_name, description, price, stock_quantity, is_active) VALUES
+(1, 1, 'Laptop', 'Gaming laptop', 35000.00, 10, TRUE),
+(1, 1, 'Headphones', 'Wireless headphones', 2500.00, 15, TRUE),
+(2, 2, 'Novel Book', 'Classic novel', 200.00, 20, TRUE),
+(2, 3, 'T-Shirt', 'Cotton T-shirt', 400.00, 30, TRUE);
 
--- Insert categories
-INSERT INTO Categories (name, parent_category_id, description, created_by) VALUES
-('Electronics', NULL, 'Electronic devices and accessories', 1),
-('Books', NULL, 'Books and publications', 1),
-('Clothing', NULL, 'Fashion and apparel', 1),
-('Computers', 1, 'Portable computers', 1),
-('Smartphones', 1, 'Mobile phones and accessories', 1),
-('Fiction', 2, 'Fiction books', 1),
-('Non-Fiction', 2, 'Non-fiction books', 1),
-('Men\'s Clothing', 3, 'Clothing for men', 1),
-('Women\'s Clothing', 3, 'Clothing for women', 1);
+INSERT INTO Orders (customer_id, seller_id, shipping_address_id, billing_address_id, status, total_amount) VALUES
+(4, 2, 1, 2, 'DELIVERED', 37500.00),
+(5, 3, 3, 3, 'PAID', 600.00);
 
--- Create catalogs for sellers
-INSERT INTO Catalogs (seller_id, catalog_name, description, is_available) VALUES
-(6, 'TechStore Premium Catalog', 'Latest electronics and gadgets', TRUE),
-(7, 'BookShop Library', 'Wide selection of books', TRUE),
-(8, 'FashionHub Collection', 'Trendy fashion and accessories', TRUE);
+INSERT INTO Order_Items (order_id, product_id, quantity, price_at_purchase) VALUES
+(1, 1, 1, 35000.00),
+(1, 2, 1, 2500.00),
+(2, 4, 1, 400.00),
+(2, 3, 1, 200.00);
 
--- Insert products for TechStore
-INSERT INTO Products (catalog_id, category_id, name, description, price, stock_quantity, image_url) VALUES
-(1, 4, 'Laptop Dell XPS 13', 'High-performance laptop with Intel i7, 16GB RAM, 512GB SSD', 1299.99, 15, NULL),
-(1, 4, 'MacBook Air M2', 'Apple MacBook Air with M2 chip, 8GB RAM, 256GB SSD', 999.99, 10, NULL),
-(1, 5, 'iPhone 15 Pro', 'Latest iPhone with A17 Pro chip, 128GB storage', 1099.99, 25, NULL),
-(1, 5, 'Samsung Galaxy S24', 'Android flagship phone with 256GB storage', 899.99, 30, NULL),
-(1, 1, 'Wireless Mouse', 'Ergonomic wireless mouse with USB receiver', 29.99, 100, NULL);
+INSERT INTO Payments (order_id, method, status, amount, paid_at) VALUES
+(1, 'CREDIT_CARD', 'COMPLETED', 37500.00, NOW()),
+(2, 'TRANSFER', 'COMPLETED', 600.00, NOW());
 
--- Insert products for BookShop
-INSERT INTO Products (catalog_id, category_id, name, description, price, stock_quantity, image_url) VALUES
-(2, 6, 'The Great Gatsby', 'Classic novel by F. Scott Fitzgerald', 14.99, 50, NULL),
-(2, 6, '1984 by George Orwell', 'Dystopian fiction masterpiece', 15.99, 60, NULL),
-(2, 7, 'Sapiens', 'A Brief History of Humankind by Yuval Noah Harari', 24.99, 45, NULL),
-(2, 7, 'Atomic Habits', 'Tiny Changes, Remarkable Results by James Clear', 19.99, 70, NULL);
+INSERT INTO Shipments (order_id, status, shipped_date, estimated_delivery_date, actual_delivery_date, tracking_number, carrier, updated_by_admin) VALUES
+(1, 'DELIVERED', NOW(), NOW(), NOW(), 'TRK123456', 'DHL', 1),
+(2, 'PENDING', NULL, NULL, NULL, NULL, NULL, 1);
 
--- Insert products for FashionHub
-INSERT INTO Products (catalog_id, category_id, name, description, price, stock_quantity, image_url) VALUES
-(3, 8, 'Men\'s Cotton T-Shirt', 'Comfortable cotton t-shirt, various colors', 29.99, 200, NULL),
-(3, 8, 'Men\'s Denim Jeans', 'Classic fit denim jeans', 89.99, 150, NULL),
-(3, 9, 'Women\'s Summer Dress', 'Elegant floral summer dress', 129.99, 80, NULL),
-(3, 9, 'Women\'s Blouse', 'Professional work blouse', 69.99, 120, NULL);
+INSERT INTO Reviews (order_item_id, customer_id, rating, comment) VALUES
+(1, 4, 5, 'Excellent product'),
+(2, 4, 4, 'Good quality');
 
--- Insert a completed order with items (for testing reviews)
-INSERT INTO Orders (customer_id, seller_id, shipping_address_id, billing_address_id, order_date, total_amount, status) VALUES
-(2, 6, 1, 1, '2025-10-15 10:30:00', 1329.98, 'Shipped');
+INSERT INTO Coupons (code, discount_percent, is_active, created_by_admin) VALUES
+('WELCOME10', 10, TRUE, 1),
+('SPRING20', 20, TRUE, 1);
 
-INSERT INTO Order_Items (order_id, product_id, quantity, price_at_purchase, subtotal) VALUES
-(1, 1, 1, 1299.99, 1299.99),
-(1, 5, 1, 29.99, 29.99);
+INSERT INTO Order_Coupons (order_id, coupon_id) VALUES
+(1, 1);
 
-INSERT INTO Payments (order_id, transaction_id, amount, method, status) VALUES
-(1, 'TXN123456', 1329.98, 'Credit Card', 'Completed');
+INSERT INTO Wishlists (customer_id) VALUES
+(4),
+(5);
 
-INSERT INTO Shipments (order_id, tracking_number, shipped_date, status, carrier) VALUES
-(1, 'TRACK123456', '2025-10-16', 'In Transit', 'FedEx');
+INSERT INTO Wishlist_Items (wishlist_id, product_id) VALUES
+(1, 3),
+(1, 4),
+(2, 1);
 
--- Insert sample reviews
-INSERT INTO Reviews (customer_id, product_id, order_id, order_item_id, rating, comment) VALUES
-(2, 1, 1, 1, 5, 'Excellent laptop! Very fast and reliable.');
-
--- Insert sample coupons
-INSERT INTO Coupons (code, discount_percent, expiry_date, min_order_amount, is_active) VALUES
-('WELCOME10', 10, '2026-12-31', 50.00, TRUE),
-('SPRING20', 20, '2026-05-01', 100.00, TRUE),
-('SUMMER15', 15, '2026-08-31', 75.00, TRUE);
-
-SELECT 'Sample data inserted successfully!' AS Message;
-SELECT COUNT(*) AS TotalUsers FROM Users;
-SELECT COUNT(*) AS TotalProducts FROM Products;
-SELECT COUNT(*) AS TotalOrders FROM Orders;
+INSERT INTO Notifications (user_id, title, message) VALUES
+(4, 'Order Delivered', 'Your order has been delivered successfully.'),
+(5, 'Order Payment', 'Your payment has been received.');

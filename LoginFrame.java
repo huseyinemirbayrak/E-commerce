@@ -101,7 +101,7 @@ public class LoginFrame extends JFrame {
         }
         
         try (Connection conn = DatabaseConnection.getConnection()) {
-            String sql = "SELECT user_id, name, email, password, role FROM Users WHERE email = ?";
+            String sql = "SELECT user_id, name, email, password, role, is_active FROM Users WHERE email = ?";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, email);
             ResultSet rs = pstmt.executeQuery();
@@ -110,7 +110,6 @@ public class LoginFrame extends JFrame {
                 String dbPassword = rs.getString("password");
                 boolean isActive = rs.getBoolean("is_active");
                 
-                // Check if account is active
                 if (!isActive) {
                     JOptionPane.showMessageDialog(this, 
                         "Account is deactivated. Please contact administrator.", 
@@ -119,13 +118,11 @@ public class LoginFrame extends JFrame {
                     return;
                 }
                 
-                // Verify password (supports both hashed and plain text for backward compatibility)
                 boolean passwordValid = false;
                 if (dbPassword.length() == 64) {
-                    // Likely a SHA-256 hash (64 hex characters)
                     passwordValid = PasswordUtil.verifyPassword(password, dbPassword);
                 } else {
-                    // Plain text password (for existing data)
+     
                     passwordValid = password.equals(dbPassword);
                 }
                 

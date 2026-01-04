@@ -407,7 +407,7 @@ public class CustomerDashboard extends JFrame {
                 int productSellerId = sellerRs.getInt("seller_id");
 
                 String orderSql = "SELECT order_id, seller_id FROM Orders " +
-                                 "WHERE customer_id = ? AND status = 'ongoing'";
+                                 "WHERE customer_id = ? AND status = 'ONGOING'";
                 PreparedStatement orderStmt = conn.prepareStatement(orderSql);
                 orderStmt.setInt(1, currentUser.getUserId());
                 ResultSet orderRs = orderStmt.executeQuery();
@@ -603,7 +603,7 @@ public class CustomerDashboard extends JFrame {
                         "FROM Order_Items oi " +
                         "JOIN Products p ON oi.product_id = p.product_id " +
                         "JOIN Orders o ON oi.order_id = o.order_id " +
-                        "WHERE o.customer_id = ? AND o.status = 'ongoing' " +
+                        "WHERE o.customer_id = ? AND o.status = 'ONGOING' " +
                         "ORDER BY oi.order_item_id";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, currentUser.getUserId());
@@ -637,7 +637,7 @@ public class CustomerDashboard extends JFrame {
             String sql = "SELECT oi.order_item_id, oi.order_id " +
                         "FROM Order_Items oi " +
                         "JOIN Orders o ON oi.order_id = o.order_id " +
-                        "WHERE o.customer_id = ? AND o.status = 'ongoing' " +
+                        "WHERE o.customer_id = ? AND o.status = 'ONGOING' " +
                         "LIMIT 1 OFFSET ?";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, currentUser.getUserId());
@@ -691,7 +691,7 @@ public class CustomerDashboard extends JFrame {
                 String sql = "SELECT oi.order_item_id, oi.order_id, oi.product_id, oi.price_at_purchase " +
                             "FROM Order_Items oi " +
                             "JOIN Orders o ON oi.order_id = o.order_id " +
-                            "WHERE o.customer_id = ? AND o.status = 'ongoing' " +
+                            "WHERE o.customer_id = ? AND o.status = 'ONGOING' " +
                             "LIMIT 1 OFFSET ?";
                 PreparedStatement pstmt = conn.prepareStatement(sql);
                 pstmt.setInt(1, currentUser.getUserId());
@@ -755,7 +755,7 @@ private void submitOrder() {
 
         String checkSql = "SELECT COUNT(*) as item_count FROM Order_Items oi " +
                          "JOIN Orders o ON oi.order_id = o.order_id " +
-                         "WHERE o.customer_id = ? AND o.status = 'ongoing'";
+                         "WHERE o.customer_id = ? AND o.status = 'ONGOING'";
         PreparedStatement checkStmt = conn.prepareStatement(checkSql);
         checkStmt.setInt(1, currentUser.getUserId());
         ResultSet checkRs = checkStmt.executeQuery();
@@ -767,7 +767,7 @@ private void submitOrder() {
         }
 
         String orderSql = "SELECT order_id, shipping_address_id, billing_address_id FROM Orders " +
-                        "WHERE customer_id = ? AND status = 'ongoing'";
+                        "WHERE customer_id = ? AND status = 'ONGOING'";
         PreparedStatement orderStmt = conn.prepareStatement(orderSql);
         orderStmt.setInt(1, currentUser.getUserId());
         ResultSet orderRs = orderStmt.executeQuery();
@@ -818,7 +818,7 @@ private void submitOrder() {
                 reduceStmt.executeUpdate();
             }
 
-            String updateSql = "UPDATE Orders SET shipping_address_id = ?, billing_address_id = ?, status = 'pending' " +
+            String updateSql = "UPDATE Orders SET shipping_address_id = ?, billing_address_id = ?, status = 'PENDING' " +
                               "WHERE order_id = ?";
             PreparedStatement updateStmt = conn.prepareStatement(updateSql);
             updateStmt.setInt(1, shippingAddrId);
@@ -1011,7 +1011,7 @@ private void submitOrder() {
                 restoreStmt.setInt(1, orderId);
                 restoreStmt.executeUpdate();
 
-                String updateSql = "UPDATE Orders SET status = 'canceled' WHERE order_id = ?";
+                String updateSql = "UPDATE Orders SET status = 'CANCELED' WHERE order_id = ?";
                 PreparedStatement updateStmt = conn.prepareStatement(updateSql);
                 updateStmt.setInt(1, orderId);
                 updateStmt.executeUpdate();
