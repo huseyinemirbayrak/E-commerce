@@ -1017,7 +1017,7 @@ private void submitOrder() {
 
         if (!"PENDING".equals(status)) {
             JOptionPane.showMessageDialog(this, 
-                "Only PENDING orders can be canceled!", 
+                "Only PENDING orders can be CANCELED!", 
                 "Cancel Error", 
                 JOptionPane.WARNING_MESSAGE);
             return;
@@ -1043,7 +1043,7 @@ private void submitOrder() {
                 updateStmt.setInt(1, orderId);
                 updateStmt.executeUpdate();
 
-                JOptionPane.showMessageDialog(this, "Order canceled successfully!");
+                JOptionPane.showMessageDialog(this, "Order CANCELED successfully!");
                 loadOrderHistory();
             } catch (SQLException ex) {
                 ex.printStackTrace();

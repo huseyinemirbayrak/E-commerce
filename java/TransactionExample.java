@@ -151,7 +151,7 @@ public class TransactionExample {
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);
             
-            // Step 1: Check if order can be canceled
+            // Step 1: Check if order can be CANCELED
             String checkSql = "SELECT status, total_amount FROM Orders WHERE order_id = ?";
             PreparedStatement checkStmt = conn.prepareStatement(checkSql);
             checkStmt.setInt(1, orderId);
@@ -170,9 +170,9 @@ public class TransactionExample {
                 throw new BusinessException("Cannot cancel DELIVERED order");
             }
             
-            if ("Canceled".equals(status)) {
+            if ("CANCELED".equals(status)) {
                 conn.rollback();
-                throw new BusinessException("Order is already canceled");
+                throw new BusinessException("Order is already CANCELED");
             }
             
             // Step 2: Restore stock quantities (only if order was PAID)
@@ -191,8 +191,8 @@ public class TransactionExample {
             // Step 3: Update order status
             String cancelSql = """
                 UPDATE Orders 
-                SET status = 'Canceled', 
-                    notes = CONCAT(COALESCE(notes, ''), '\nCanceled: ', ?)
+                SET status = 'CANCELED', 
+                    notes = CONCAT(COALESCE(notes, ''), '\nCANCELED: ', ?)
                 WHERE order_id = ?
                 """;
             PreparedStatement cancelStmt = conn.prepareStatement(cancelSql);

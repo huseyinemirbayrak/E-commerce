@@ -37,7 +37,7 @@
 
 6. **Orders Table**
    - ⚠️ **Note**: Kept both `shipping_address_id` and `billing_address_id` (guide shows single `address_id`, but dual addresses are more realistic for e-commerce)
-   - ✅ Changed status values to title case: 'PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'Canceled'
+   - ✅ Changed status values to title case: 'PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELED'
    - ⚠️ **Note**: Kept 'ONGOING' status concept in application logic (guide uses 'PENDING' for cart, but 'ONGOING' is clearer distinction)
    - ✅ Added `notes TEXT` field
    - ✅ Added `seller_id` (required for single-seller-per-order business rule)
@@ -96,8 +96,8 @@
 
 1. **Status Value Updates in Java Code**
    - Need to update all status comparisons from lowercase to title case
-   - Current: 'PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'canceled'
-   - Should be: 'PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'Canceled'
+   - Current: 'PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELED'
+   - Should be: 'PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELED'
    - Exception: 'ONGOING' status (application-level, not in database)
 
 2. **Payment Method Updates**
