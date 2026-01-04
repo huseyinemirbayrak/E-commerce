@@ -37,7 +37,7 @@ INSERT INTO Order_Items (order_id, product_id, quantity, price_at_purchase) VALU
 (2, 4, 1, 400.00),
 (2, 3, 1, 200.00);
 
-INSERT INTO Payments (order_id, method, status, amount, paid_at) VALUES
+INSERT INTO Payments (order_id, method, status, amount, PAID_at) VALUES
 (1, 'CREDIT_CARD', 'COMPLETED', 37500.00, NOW()),
 (2, 'TRANSFER', 'COMPLETED', 600.00, NOW());
 

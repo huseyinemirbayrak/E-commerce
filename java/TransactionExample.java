@@ -1,4 +1,7 @@
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
  * Example utility class demonstrating transaction management for critical operations.
@@ -16,11 +19,11 @@ public class TransactionExample {
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);  // Start transaction
             
-            // Step 1: Verify payment completed
+            // Step 1: Verify payment COMPLETED
             String checkPaymentSql = """
-                SELECT COALESCE(SUM(amount), 0) as paid_amount
+                SELECT COALESCE(SUM(amount), 0) as PAID_amount
                 FROM Payments 
-                WHERE order_id = ? AND status = 'Completed'
+                WHERE order_id = ? AND status = 'COMPLETED'
                 """;
             PreparedStatement checkStmt = conn.prepareStatement(checkPaymentSql);
             checkStmt.setInt(1, orderId);
@@ -31,7 +34,7 @@ public class TransactionExample {
                 throw new BusinessException("Payment verification failed");
             }
             
-            double paidAmount = rs.getDouble("paid_amount");
+            double PAIDAmount = rs.getDouble("PAID_amount");
             
             // Get order total
             String orderSql = "SELECT total_amount, status FROM Orders WHERE order_id = ?";
@@ -47,14 +50,14 @@ public class TransactionExample {
             double orderTotal = orderRs.getDouble("total_amount");
             String currentStatus = orderRs.getString("status");
             
-            if (!"Pending".equals(currentStatus)) {
+            if (!"PENDING".equals(currentStatus)) {
                 conn.rollback();
-                throw new BusinessException("Order is not in Pending status");
+                throw new BusinessException("Order is not in PENDING status");
             }
             
-            if (paidAmount < orderTotal) {
+            if (PAIDAmount < orderTotal) {
                 conn.rollback();
-                throw new BusinessException("Payment insufficient. Paid: $" + paidAmount + ", Required: $" + orderTotal);
+                throw new BusinessException("Payment insufficient. PAID: $" + PAIDAmount + ", Required: $" + orderTotal);
             }
             
             // Step 2: Verify stock availability before deducting
@@ -81,8 +84,8 @@ public class TransactionExample {
                 }
             }
             
-            // Step 3: Update order status to Paid
-            String updateOrderSql = "UPDATE Orders SET status = 'Paid' WHERE order_id = ?";
+            // Step 3: Update order status to PAID
+            String updateOrderSql = "UPDATE Orders SET status = 'PAID' WHERE order_id = ?";
             PreparedStatement updateStmt = conn.prepareStatement(updateOrderSql);
             updateStmt.setInt(1, orderId);
             updateStmt.executeUpdate();
@@ -162,9 +165,9 @@ public class TransactionExample {
             String status = rs.getString("status");
             double totalAmount = rs.getDouble("total_amount");
             
-            if ("Delivered".equals(status)) {
+            if ("DELIVERED".equals(status)) {
                 conn.rollback();
-                throw new BusinessException("Cannot cancel delivered order");
+                throw new BusinessException("Cannot cancel DELIVERED order");
             }
             
             if ("Canceled".equals(status)) {
@@ -172,8 +175,8 @@ public class TransactionExample {
                 throw new BusinessException("Order is already canceled");
             }
             
-            // Step 2: Restore stock quantities (only if order was paid)
-            if (!"Pending".equals(status)) {
+            // Step 2: Restore stock quantities (only if order was PAID)
+            if (!"PENDING".equals(status)) {
                 String restoreStockSql = """
                     UPDATE Products p
                     JOIN OrderItems oi ON p.product_id = oi.product_id
@@ -197,11 +200,11 @@ public class TransactionExample {
             cancelStmt.setInt(2, orderId);
             cancelStmt.executeUpdate();
             
-            // Step 4: Create refund payment (if order was paid)
-            if (!"Pending".equals(status)) {
+            // Step 4: Create refund payment (if order was PAID)
+            if (!"PENDING".equals(status)) {
                 String refundSql = """
                     INSERT INTO Payments (order_id, payment_date, amount, method, status, transaction_id)
-                    VALUES (?, NOW(), ?, 'Refund', 'Completed', ?)
+                    VALUES (?, NOW(), ?, 'Refund', 'COMPLETED', ?)
                     """;
                 PreparedStatement refundStmt = conn.prepareStatement(refundSql);
                 refundStmt.setInt(1, orderId);

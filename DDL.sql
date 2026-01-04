@@ -106,7 +106,7 @@ CREATE TABLE Orders (
   submitted_at      TIMESTAMP NULL,
   total_amount      DECIMAL(12,2) NOT NULL DEFAULT 0.00 CHECK (total_amount >= 0),
 
-  ongoing_customer_id BIGINT
+  ONGOING_customer_id BIGINT
     GENERATED ALWAYS AS (CASE WHEN status='ONGOING' THEN customer_id ELSE NULL END) STORED,
 
   CONSTRAINT fk_orders_customer
@@ -129,7 +129,7 @@ CREATE TABLE Orders (
     ON DELETE SET NULL
     ON UPDATE CASCADE,
 
-  UNIQUE KEY uq_one_ongoing_per_customer (ongoing_customer_id)
+  UNIQUE KEY uq_one_ONGOING_per_customer (ONGOING_customer_id)
 ) ENGINE=InnoDB;
 
 CREATE INDEX ix_orders_customer ON Orders(customer_id);
@@ -171,7 +171,7 @@ CREATE TABLE Payments (
   method            ENUM('CREDIT_CARD','TRANSFER','WALLET','CASH_ON_DELIVERY') NOT NULL,
   status            ENUM('PENDING','COMPLETED','FAILED','REFUNDED') NOT NULL DEFAULT 'PENDING',
   amount            DECIMAL(12,2) NOT NULL CHECK (amount >= 0),
-  paid_at           TIMESTAMP NULL,
+  PAID_at           TIMESTAMP NULL,
   created_at        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT fk_payments_order

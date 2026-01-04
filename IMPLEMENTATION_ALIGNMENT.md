@@ -2,7 +2,7 @@
 
 ## Summary of Updates Made
 
-### ✅ Schema Updates Completed
+### ✅ Schema Updates COMPLETED
 
 1. **Users Table**
    - ✅ Added `created_at TIMESTAMP`
@@ -37,8 +37,8 @@
 
 6. **Orders Table**
    - ⚠️ **Note**: Kept both `shipping_address_id` and `billing_address_id` (guide shows single `address_id`, but dual addresses are more realistic for e-commerce)
-   - ✅ Changed status values to title case: 'Pending', 'Paid', 'Shipped', 'Delivered', 'Canceled'
-   - ⚠️ **Note**: Kept 'ongoing' status concept in application logic (guide uses 'Pending' for cart, but 'ongoing' is clearer distinction)
+   - ✅ Changed status values to title case: 'PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'Canceled'
+   - ⚠️ **Note**: Kept 'ONGOING' status concept in application logic (guide uses 'PENDING' for cart, but 'ONGOING' is clearer distinction)
    - ✅ Added `notes TEXT` field
    - ✅ Added `seller_id` (required for single-seller-per-order business rule)
 
@@ -49,14 +49,14 @@
 
 8. **Payments Table**
    - ✅ Changed method values to title case: 'Credit Card', 'Debit Card', 'PayPal', 'Bank Transfer', 'Wallet'
-   - ✅ Changed status values to title case: 'Pending', 'Completed', 'Failed', 'Refunded'
+   - ✅ Changed status values to title case: 'PENDING', 'COMPLETED', 'Failed', 'Refunded'
    - ✅ Added CHECK constraint for positive amount
    - ✅ Reordered fields to match guide
 
 9. **Shipments Table**
    - ✅ Added `estimated_delivery_date` and `actual_delivery_date`
    - ✅ Added `carrier VARCHAR(100)`
-   - ✅ Changed status values to: 'Preparing', 'Shipped', 'In Transit', 'Out for Delivery', 'Delivered'
+   - ✅ Changed status values to: 'Preparing', 'SHIPPED', 'In Transit', 'Out for Delivery', 'DELIVERED'
    - ✅ Added CHECK constraint for delivery dates
 
 10. **Reviews Table**
@@ -80,11 +80,11 @@
    - **Reason**: More realistic for e-commerce (customers often have different shipping/billing addresses)
    - **Impact**: Code already handles both addresses correctly
 
-2. **Orders Table - 'ongoing' Status**
-   - **Guide shows**: 'Pending' for shopping cart
-   - **Implementation**: Uses 'ongoing' in application logic for cart, 'Pending' for submitted orders
+2. **Orders Table - 'ONGOING' Status**
+   - **Guide shows**: 'PENDING' for shopping cart
+   - **Implementation**: Uses 'ONGOING' in application logic for cart, 'PENDING' for submitted orders
    - **Reason**: Clearer distinction between active cart vs. submitted order awaiting payment
-   - **Impact**: Application code distinguishes between cart and pending orders
+   - **Impact**: Application code distinguishes between cart and PENDING orders
 
 3. **Orders Table - seller_id Field**
    - **Guide shows**: Not explicitly shown in Orders table
@@ -96,9 +96,9 @@
 
 1. **Status Value Updates in Java Code**
    - Need to update all status comparisons from lowercase to title case
-   - Current: 'pending', 'paid', 'shipped', 'delivered', 'canceled'
-   - Should be: 'Pending', 'Paid', 'Shipped', 'Delivered', 'Canceled'
-   - Exception: 'ongoing' status (application-level, not in database)
+   - Current: 'PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'canceled'
+   - Should be: 'PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'Canceled'
+   - Exception: 'ONGOING' status (application-level, not in database)
 
 2. **Payment Method Updates**
    - Update all payment method references to title case
@@ -107,8 +107,8 @@
 
 3. **Shipment Status Updates**
    - Update shipment status values to match new ENUM
-   - Current: 'pending', 'in_transit', 'delivered', 'failed'
-   - Should be: 'Preparing', 'Shipped', 'In Transit', 'Out for Delivery', 'Delivered'
+   - Current: 'PENDING', 'IN_TRANSIT', 'DELIVERED', 'failed'
+   - Should be: 'Preparing', 'SHIPPED', 'In Transit', 'Out for Delivery', 'DELIVERED'
 
 4. **Additional Features Implementation**
    - ✅ Wishlist table exists in schema
@@ -155,12 +155,12 @@ The guide emphasizes SQL-first architecture. All queries should:
 ### 📝 Testing Checklist
 
 - [ ] Test login with Administrator role
-- [ ] Test all status transitions (Pending → Paid → Shipped → Delivered)
+- [ ] Test all status transitions (PENDING → PAID → SHIPPED → DELIVERED)
 - [ ] Test payment methods with new title case values
 - [ ] Test shipment status updates
 - [ ] Verify all SQL queries use PreparedStatement
 - [ ] Verify no data processing in Java (all in SQL)
-- [ ] Test business rules (single seller per order, one ongoing order, etc.)
+- [ ] Test business rules (single seller per order, one ONGOING order, etc.)
 - [ ] Test exception handling for all scenarios
 - [ ] Verify foreign key constraints work correctly
 

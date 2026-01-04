@@ -48,7 +48,7 @@ try {
 
 ### 3. Database Schema Updates
 
-**Completed:**
+**COMPLETED:**
 - ✅ Updated to match guide specifications
 - ✅ Added missing fields (created_at, is_active, address_type, etc.)
 - ✅ Changed role from 'Admin' to 'Administrator'
@@ -69,8 +69,8 @@ try {
 ### High Priority
 
 1. **Update Status Values in Java Code**
-   - Current code uses lowercase ('pending', 'paid', etc.)
-   - Database uses title case ('Pending', 'Paid', etc.)
+   - Current code uses lowercase ('PENDING', 'PAID', etc.)
+   - Database uses title case ('PENDING', 'PAID', etc.)
    - Need to update all status comparisons in:
      - `CustomerDashboard.java`
      - `SellerDashboard.java`
@@ -175,10 +175,10 @@ try {
 **Solution:** Update all status comparisons:
 ```java
 // Change from:
-if ("pending".equals(status))
+if ("PENDING".equals(status))
 
 // To:
-if ("Pending".equals(status))
+if ("PENDING".equals(status))
 ```
 
 **Files to Update:**
@@ -229,9 +229,9 @@ These improvements can be made quickly:
    ```
 
 2. **Update Status Comparisons** (15 minutes)
-   - Find and replace: "pending" → "Pending"
-   - Find and replace: "paid" → "Paid"
-   - Find and replace: "shipped" → "Shipped"
+   - Find and replace: "PENDING" → "PENDING"
+   - Find and replace: "PAID" → "PAID"
+   - Find and replace: "SHIPPED" → "SHIPPED"
    - etc.
 
 3. **Add Input Validation** (10 minutes)
@@ -255,8 +255,8 @@ These improvements can be made quickly:
 
 ### Business Rules Testing
 - [ ] Test single seller per order enforcement
-- [ ] Test one ongoing order per customer
-- [ ] Test review submission only for shipped orders
+- [ ] Test one ONGOING order per customer
+- [ ] Test review submission only for SHIPPED orders
 - [ ] Test stock validation before adding to cart
 
 ## 🎓 Learning Outcomes
